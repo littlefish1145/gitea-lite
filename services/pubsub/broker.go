@@ -37,3 +37,10 @@ var DefaultBroker Broker = NewMemoryBroker()
 func UserTopic(userID int64) string {
 	return fmt.Sprintf("user-%d", userID)
 }
+
+// CodeServerTopic is the cross-process topic for a durable CodeServer
+// collaboration session.  It intentionally uses the opaque session id only;
+// authorization is always checked before a caller subscribes.
+func CodeServerTopic(sessionID string) string {
+	return fmt.Sprintf("codeserver-session-%s", sessionID)
+}

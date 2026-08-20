@@ -1,8 +1,8 @@
 {{$isTreePathRoot := not .TreeNames}}
 
 <div class="repo-view-content-data tw-hidden" data-document-title="{{ctx.RootData.Title}}" data-document-title-common="{{ctx.RootData.PageTitleCommon}}"></div>
-{{template "repo/sub_menu" .}}
-<div class="repo-button-row">
+{{/* {{template "repo/sub_menu" .}} */}}
+<div class="gitea-github-theme-templates repo-button-row">
 	<div class="repo-button-row-left">
 	{{if not $isTreePathRoot}}
 		{{template "repo/view_file_tree_toggle_button" .}}
@@ -20,18 +20,17 @@
 		"ShowViewAllRefsEntry" true
 	}}
 
-	{{if and .PullRequestCtx.CanCreateNewPull .RefFullName.IsBranch}}
-		{{$compareLink := .PullRequestCtx.MakeDefaultCompareLink .BranchName}}
-		<a id="new-pull-request" role="button" class="ui compact basic button" href="{{QueryBuild $compareLink "expand" 1}}"
-			data-tooltip-content="{{ctx.Locale.Tr "repo.pulls.compare_changes"}}">
-			{{svg "octicon-git-pull-request"}}
+	{{if and $isTreePathRoot (.Permission.CanRead ctx.Consts.RepoUnitTypeCode) (not .IsEmptyRepo)}}
+	<div class="repository-summary">
+		<a class="item muted" href="{{.RepoLink}}/branches">
+			{{svg "octicon-git-branch"}} <b>{{ctx.Locale.PrettyNumber .BranchesCount}}</b> {{ctx.Locale.TrN .BranchesCount "repo.branch" "repo.branches"}}
 		</a>
-	{{end}}
-
-	{{if and $isTreePathRoot .Repository.IsTemplate}}
-		<a role="button" class="ui primary compact button" href="{{AppSubUrl}}/repo/create?template_id={{.Repository.ID}}">
-			{{ctx.Locale.Tr "repo.use_template"}}
-		</a>
+		{{if $.Permission.CanRead ctx.Consts.RepoUnitTypeCode}}
+			<a class="item muted" href="{{.RepoLink}}/tags">
+				{{svg "octicon-tag"}} <b>{{ctx.Locale.PrettyNumber .NumTags}}</b> {{ctx.Locale.TrN .NumTags "repo.tag" "repo.tags"}}
+			</a>
+		{{end}}
+	</div>
 	{{end}}
 
 	{{if not $isTreePathRoot}}
@@ -110,6 +109,22 @@
 			</button>
 			{{end}}
 		{{end}}
+		{{if and $isTreePathRoot .Repository.IsTemplate}}
+			<a role="button" class="ui primary compact button" href="{{AppSubUrl}}/repo/create?template_id={{.Repository.ID}}">
+				{{ctx.Locale.Tr "repo.use_template"}}
+			</a>
+		{{end}}
+		{{if .CodeServerEnabled}}
+			{{if .CodeServerCanOpen}}
+				<a class="ui compact primary button" target="_blank" rel="noopener" href="{{.CodeServerOpenURL}}" data-tooltip-content="{{ctx.Locale.Tr "repo.code_server"}}">
+					{{svg "octicon-code" 16}}{{ctx.Locale.Tr "repo.code_server"}}
+				</a>
+			{{else}}
+				<button class="ui compact button" disabled data-tooltip-content="{{ctx.Locale.Tr "repo.code_server_fork_required"}}">
+					{{svg "octicon-code" 16}}{{ctx.Locale.Tr "repo.code_server"}}
+				</button>
+			{{end}}
+		{{end}}
 		<!-- Only show clone panel in repository home page -->
 		{{if $isTreePathRoot}}
 			{{template "repo/clone_panel" (dict
@@ -117,11 +132,6 @@
 				"OpenWithEditorApps" $.OpenWithEditorApps
 				"DownloadArchiveLinkPrefix" $.DownloadArchiveLinkPrefix
 			)}}
-		{{end}}
-		{{if and (not $isTreePathRoot) (not .IsViewFile) (not .IsBlame)}}{{/* IsViewDirectory (not home), TODO: split the templates, avoid using "if" tricks */}}
-			<a class="ui compact button" href="{{.RepoLink}}/commits/{{.RefTypeNameSubURL}}/{{.TreePath | PathEscapeSegments}}">
-				{{svg "octicon-history"}}{{ctx.Locale.Tr "repo.file_history"}}
-			</a>
 		{{end}}
 	</div>
 </div>

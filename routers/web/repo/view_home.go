@@ -17,6 +17,7 @@ import (
 	repo_model "gitea.dev/models/repo"
 	unit_model "gitea.dev/models/unit"
 	user_model "gitea.dev/models/user"
+	"gitea.dev/modules/codeserver"
 	"gitea.dev/modules/git"
 	"gitea.dev/modules/htmlutil"
 	"gitea.dev/modules/httplib"
@@ -85,6 +86,51 @@ func prepareClonePanel(ctx *context.Context) {
 		})
 	}
 	ctx.Data["OpenWithEditorApps"] = tmplApps
+	ctx.Data["CodeServerEnabled"] = setting.CodeServer.Enabled
+	ctx.Data["CodeServerCanOpen"] = false
+	if setting.CodeServer.Enabled && ctx.IsSigned && ctx.Doer != nil && ctx.Repo.Repository.OwnerID == ctx.Doer.ID {
+		cloneLink := ctx.Repo.Repository.CloneLink(ctx, ctx.Doer)
+		cloneURL := cloneLink.HTTPS
+		if cloneURL == "" {
+			cloneURL = cloneLink.SSH
+		}
+		if cloneURL != "" {
+			handoff := codeserver.Handoff{
+				Purpose:  codeserver.HandoffPurpose,
+				Exp:      time.Now().Add(codeserver.HandoffLifetime).Unix(),
+				UserID:   ctx.Doer.ID,
+				Username: ctx.Doer.Name,
+				RepoID:   ctx.Repo.Repository.ID,
+				Owner:    ctx.Repo.Repository.OwnerName,
+				Repo:     ctx.Repo.Repository.Name,
+				CloneURL: cloneURL,
+				Ref:      ctx.Repo.RefFullName.ShortName(),
+				Path:     ctx.Repo.TreePath,
+				GiteaURL: strings.TrimRight(setting.AppURL, "/"),
+			}
+			if ctx.Repo.Repository.IsFork {
+				if err := ctx.Repo.Repository.GetBaseRepo(ctx); err != nil {
+					log.Warn("Failed to load CodeServer upstream repository: %v", err)
+				} else if ctx.Repo.Repository.BaseRepo != nil {
+					handoff.BaseOwner = ctx.Repo.Repository.BaseRepo.OwnerName
+					handoff.BaseRepo = ctx.Repo.Repository.BaseRepo.Name
+					handoff.BaseRepoID = ctx.Repo.Repository.BaseRepo.ID
+					baseCloneLink := ctx.Repo.Repository.BaseRepo.CloneLink(ctx, ctx.Doer)
+					handoff.BaseCloneURL = baseCloneLink.HTTPS
+					if handoff.BaseCloneURL == "" {
+						handoff.BaseCloneURL = baseCloneLink.SSH
+					}
+				}
+			}
+			launchURL, err := codeserver.LaunchURL(setting.CodeServer.URL, handoff, setting.CodeServer.SharedSecret)
+			if err != nil {
+				log.Warn("Failed to create CodeServer launch URL: %v", err)
+			} else {
+				ctx.Data["CodeServerCanOpen"] = true
+				ctx.Data["CodeServerOpenURL"] = launchURL
+			}
+		}
+	}
 
 	if !setting.Repository.DisableDownloadSourceArchives {
 		// FIXME: here it only uses the shortname in the ref to build the link, it can't distinguish the branch/tag/commit with the same name

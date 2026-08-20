@@ -12,8 +12,17 @@
 	</a>
 	<a class="item {{$itemExtraClass}}" href="{{AppSubUrl}}/notifications" data-tooltip-content="{{ctx.Locale.Tr "notifications"}}">
 		<div class="tw-relative flex-text-block">
-			{{svg "octicon-bell"}}
+			{{svg "octicon-inbox"}}
 			<span class="notification_count{{if not $notificationUnreadCount}} tw-hidden{{end}}">{{$notificationUnreadCount}}</span>
 		</div>
 	</a>
+	{{if not ctx.Consts.RepoUnitTypeIssues.UnitGlobalDisabled}}
+	<a class="item {{$itemExtraClass}}" href="{{AppSubUrl}}/issues" data-tooltip-content="{{ctx.Locale.Tr "issues"}}">{{svg "octicon-issue-opened"}}</a>
+	{{end}}
+	{{if not ctx.Consts.RepoUnitTypePullRequests.UnitGlobalDisabled}}
+	<a class="item {{$itemExtraClass}}" href="{{AppSubUrl}}/pulls" data-tooltip-content="{{ctx.Locale.Tr "pull_requests"}}">{{svg "octicon-git-pull-request"}}</a>
+	{{end}}
+	{{if and (not (and ctx.Consts.RepoUnitTypeIssues.UnitGlobalDisabled ctx.Consts.RepoUnitTypePullRequests.UnitGlobalDisabled)) .ShowMilestonesDashboardPage}}
+	<a class="item {{$itemExtraClass}}" href="{{AppSubUrl}}/milestones" data-tooltip-content="{{ctx.Locale.Tr "milestones"}}">{{svg "octicon-milestone"}}</a>
+	{{end}}
 {{end}}

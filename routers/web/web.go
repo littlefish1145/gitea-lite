@@ -612,6 +612,7 @@ func registerWebRoutes(m *web.Router, webAuth *AuthMiddleware) {
 	}, reqSignOut)
 
 	m.Get("/-/ws", routing.MarkLongPolling(), gitea_websocket.Serve)
+	m.Get("/codeserver/collaboration/join", reqSignIn, CodeServerCollaborationJoin)
 
 	m.Group("/login/oauth", func() {
 		m.Group("", func() {

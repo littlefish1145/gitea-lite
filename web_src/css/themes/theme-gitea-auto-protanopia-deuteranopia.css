@@ -1,8 +1,3 @@
-@import "./theme-gitea-light-protanopia-deuteranopia.css" (prefers-color-scheme: light);
 @import "./theme-gitea-dark-protanopia-deuteranopia.css" (prefers-color-scheme: dark);
-
-gitea-theme-meta-info {
-  --theme-display-name: "Auto";
-  --theme-colorblind-type: "red-green";
-  --theme-color-scheme: "auto";
-}
+@import "./theme-gitea-light-protanopia-deuteranopia.css" (prefers-color-scheme: light);
+gitea-theme-meta-info{--theme-color-scheme:auto;--theme-display-name:GitHub Default Auto Protanopia And Deuteranopia;--theme-colorblind-type:red-green}

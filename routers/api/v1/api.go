@@ -898,6 +898,7 @@ func bind[T any](_ T) any {
 
 func buildAuthGroup() *auth.Group {
 	group := auth.NewGroup(
+		&auth.CodeServer{},
 		&auth.OAuth2{},
 		&auth.HTTPSign{},
 		&auth.Basic{}, // FIXME: this should be removed once we don't allow basic auth in API
@@ -1074,6 +1075,11 @@ func Routes() *web.Router {
 	}
 
 	m.Group("", func() {
+		// CodeServer collaboration is backed by Gitea so sessions, invitations,
+		// chat history, and cross-process WebSocket events survive CodeServer
+		// restarts and can be used from another device.
+		RegisterCodeServerRoutes(m)
+
 		// Miscellaneous (no scope required)
 		if setting.API.EnableSwagger {
 			m.Get("/swagger", func(ctx *context.APIContext) {

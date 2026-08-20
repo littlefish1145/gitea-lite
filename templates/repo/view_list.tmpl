@@ -6,9 +6,27 @@
 		data-fetch-indicator=".repo-file-cell.notready.message"
 	{{end}}
 >
-	<div class="repo-file-line repo-file-last-commit">
+	<div class="gitea-github-theme-templates repo-file-line repo-file-last-commit">
 		{{template "repo/latest_commit" .}}
-		<div>{{if and .LatestCommit .LatestCommit.Committer}}{{DateUtils.TimeSince .LatestCommit.Committer.When}}{{end}}</div>
+		<div class="gitea-github-theme-latest-time">
+			{{if and .LatestCommit .LatestCommit.Committer}}
+				<a href="{{ .RepoLink }}/commit/{{.LatestCommit.ID}}" class="muted" rel="nofollow">
+					{{- ShortSha .LatestCommit.ID.String -}}
+				</a>
+				·
+				{{DateUtils.TimeSince .LatestCommit.Committer.When}}
+			{{end}}
+		</div>
+		{{if and (not .TreeNames) (.Permission.CanRead ctx.Consts.RepoUnitTypeCode) (not .IsEmptyRepo)}}
+		<a class="gitea-github-theme-latest-commit item muted" href="{{.RepoLink}}/commits/{{.RefFullName.RefWebLinkPath}}">
+			{{svg "octicon-history" 16}} <b>{{ctx.Locale.PrettyNumber .CommitsCount}}</b> {{ctx.Locale.TrN .CommitsCount "repo.commit" "repo.commits"}}
+		</a>
+		{{end}}
+		{{if and .TreeNames (not .IsViewFile) (not .IsBlame)}}{{/* IsViewDirectory (not home), TODO: split the templates, avoid using "if" tricks */}}
+			<a class="gitea-github-theme-latest-commit item muted" href="{{.RepoLink}}/commits/{{.RefTypeNameSubURL}}/{{.TreePath | PathEscapeSegments}}">
+				{{svg "octicon-history" 16}}{{ctx.Locale.Tr "repo.file_history"}}
+			</a>
+		{{end}}
 	</div>
 	{{$.FileIconPoolHTML}}
 	{{if .HasParentPath}}

@@ -122,6 +122,7 @@ func loadCommonSettingsFrom(cfg ConfigProvider) error {
 	loadLogGlobalFrom(cfg)
 	loadServerFrom(cfg)
 	loadSSHFrom(cfg)
+	loadCodeServerFrom(cfg)
 
 	mustCurrentRunUserMatch(cfg) // it depends on the SSH config, only non-builtin SSH server requires this check
 
